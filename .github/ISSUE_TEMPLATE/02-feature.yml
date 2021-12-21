@@ -1,0 +1,13 @@
+name: Feature
+description: >
+  A request for a specific, new feature. For example, "support using MySQL
+  global transaction IDs for consistency."
+labels: C-feature
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for your interest in Materialize. Please be as detailed as possible in your feature request.
+  - type: textarea
+    attributes:
+      label: Feature request

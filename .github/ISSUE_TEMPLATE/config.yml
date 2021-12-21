@@ -1,0 +1,13 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Community Slack
+    url: https://materialize.com/s/chat
+    about: Meet the Materialize community on Slack.
+  - name: GitHub discussions
+    url: https://github.com/MaterializeInc/materialize/discussions
+    about: Ask and answer long-form questions about Materialize.
+  - name: Security reports
+    url: https://materialize.com/securitydisclosure
+    about: >
+      If you've discovered a security issue, please review our responsible
+      disclosure policy.
