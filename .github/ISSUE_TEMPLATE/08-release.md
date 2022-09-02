@@ -30,9 +30,22 @@ production readiness.
 
 ### Create the release candidate
 
-- [ ] Choose the commit for the release. The commit should *always* be the
-  last commit before noon EST on Monday, even if you start the release process
-  late.
+- [ ] Choose the commit for the release. The commit should *always* be the last
+  commit before 05:00 UTC on Wednesday, even though you won't start the release
+  process until Wednesday morning in your timezone.
+
+  From an updated `main` branch, use this command to find the release commit:
+
+  **Note:** If you're on macOS you need to use `gdate` instead of `date` which
+  you can install with `brew install coreutils`.
+
+  ```shell
+  # If you run the release on Wednesday
+  git log -n1 --before $(date -Iminutes -d 'this wednesday 05:00 UTC') main
+
+  # If you run the release after Wednesday
+  git log -n1 --before $(date -Iminutes -d 'last wednesday 05:00 UTC') main
+  ```
 
   If there are open release blockers, what to do depends on the scope of the
   fix. If the fix lands soon and is small, cherry-pick the fix onto the chosen
@@ -41,18 +54,18 @@ production readiness.
 - [ ] Create a new release candidate, specifying what kind of release this
   should be (see `--help` for all the release types):
 
-  ```shell
-  bin/mkrelease new-rc weekly
-  ```
+  - If there are no cherry-picks you can run the following command:
 
-- [ ] Update the [release notes][] to include a new "unreleased" version so that new
-  changes don't get advertised as being part of this release as folks add notes.
+    ```shell
+    bin/mkrelease new-rc weekly --checkout <commit_from_previous_step>
+    ```
 
-  > **NOTE:** the next "unreleased" version should always bump the middle
-  > component.
-  >
-  > For example, if the version being released is `v0.5.9`, `<NEXT_VERSION>` should always be
-  > `0.6.0`.
+  - Otherwise, you need to check out the commit from the previous step, run the
+    appropriate `git cherry-pick` commands, and then run:
+
+    ```shell
+    bin/mkrelease new-rc weekly
+    ```
 
 - [ ] Incorporate this tag into `main`'s history by preparing dev on top of it.
 
@@ -84,9 +97,11 @@ production readiness.
 
 ### Review Release Notes
 
-Release notes should be updated by engineers as they merge PRs. The release notes
-team is responsible for reviewing release notes and the release announcement before
-a release is published.
+Release notes should be added to the "unstable" section by engineers as they
+merge PRs. Before announcing the release, the release notes team (Nikhil)
+migrates the relevant release notes to the dedicated "v0.X.Y" section header,
+based on which commits actually made it into the release, then reviews the list
+of PRs and adds release notes for any features or bugs that were missed.
 
 - [ ] Post the following message to the `#release` channel in slack, modifying the two
   issue links, one to point to the unreviewed PRs issue you went through above, and one
@@ -105,14 +120,18 @@ a release is published.
   job][] for your release has been completed. Find it [here][slts] and link to it, don't
   check this checkmark off until it has succeeded.
 
+- [ ] [A full Nightly run][nightlies] will be automatically triggered as well. Find it
+[here][nightlies] and link to it. Make sure all failures are accounted for or ask in #eng-testing .
+
 - [ ] Wait for the [deploy job][] for the currently-releasing version tag to
   complete. Then launch the load tests using the `bin/scratch` script:
 
   ```
-  bin/scratch create < misc/load-tests/release.json
+  bin/scratch create < misc/scratch/release.json
   ```
 
 [slts]: https://buildkite.com/materialize/sql-logic-tests
+[nightlies]: https://buildkite.com/materialize/nightlies
 [deploy job]: https://buildkite.com/materialize/deploy
 [This commit]: https://github.com/MaterializeInc/infra/commit/fd7f594d6f9fb2fda3a604f21b730f8d401fe81c
 
@@ -137,7 +156,6 @@ a release is published.
   Load tests for release v0.9.2-rc1
   * chbench: https://grafana.i.mtrlz.dev/d/materialize-overview/materialize-overview-load-tests?orgId=1&from=1630418400000&to=1630512000000&var-test=chbench&var-purpose=load_test&var-env=scratch
   * kinesis: https://grafana.i.mtrlz.dev/d/materialize-overview/materialize-overview-load-tests?orgId=1&from=1630418400000&to=1630512000000&var-test=kinesis&var-purpose=load_test&var-env=scratch
-  * chaos: https://grafana.i.mtrlz.dev/d/materialize-overview/materialize-overview-load-tests?orgId=1&from=1630418400000&to=1630512000000&var-test=chaos&var-purpose=chaos&var-env=scratch
   ```
   </details>
 
@@ -147,14 +165,10 @@ a release is published.
   - [ ] perf-kinesis: The "Time behind external source" dashboard panel in Grafana should
     have remained at 0ms or similar for the entirety of the run.
 
-- [ ] Let the chaos test run for 24 hours. The test's `chaos_run` container should complete with a
-  `0` exit code. To check this, SSH into the EC2 instance running the chaos test and run `docker ps
-  -a`. You can ssh in using our [teleport cluster][], the chaos test has a `purpose=chaos` label.
-
 - [ ] Remove all load test machines:
 
   ```
-  bin/scratch mine --output-format csv | tail -n +2 | cut -d, -f2 | xargs bin/scratch destroy
+  bin/scratch mine --output-format csv | grep -E 'chbench|kinesis' | tail -n +2 | cut -d, -f2 | xargs bin/scratch destroy
   ```
 
 [teleport cluster]: https://tsh.i.mtrlz.dev/cluster/tsh/nodes
@@ -262,17 +276,6 @@ a release is published.
 ## Finish
 
 - (optional) Update the current status at the top of this issue.
-- [ ] If this release ran over a week late, update the repeating slack reminder
-  in the `release` channel.
-
-  you can view and delete existing reminders by typing `/remind list` in
-  `#release`
-
-  I used the following to create the repeating alert, just modify the start date
-  to the correct date:
-
-  > /remind #release "@release-team start the next release" on June 21st every 2 weeks
-
 - Close this issue.
 
 [`doc/user/config.toml`]: https://github.com/MaterializeInc/materialize/blob/main/doc/user/config.toml

@@ -1,8 +1,17 @@
+# Copyright Materialize, Inc. and contributors. All rights reserved.
+#
+# Use of this software is governed by the Business Source License
+# included in the LICENSE file at the root of this repository.
+#
+# As of the Change Date specified in that file, in accordance with
+# the Business Source License, use of this software will be governed
+# by the Apache License, Version 2.0.
+
 name: Bug
 description: >
   A defect in an existing feature. For example, "consistency is violated if
   Kafka Connect restarts."
-labels: C-bug
+labels: [C-bug, C-triage]
 body:
   - type: markdown
     attributes:
@@ -34,9 +43,9 @@ body:
       required: true
   - type: textarea
     attributes:
-      label: What was the issue?
+      label: What is the issue?
       description: |
-        Describe what you expected to happen vs. what actually happened.
+        Describe what you expect to happen vs. what actually happens.
 
         If the issue is reproducible, **please provide reproduction instructions.** A precise set of instructions that demonstrates the issue vastly increases the likelihood that we will be able to find and fix it.
     validations:
